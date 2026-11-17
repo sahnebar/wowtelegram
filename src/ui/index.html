@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>Azeroth Relay</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14l5-5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9 3-1 3-3 1-2 3 2 2v3l3 1 1 3h5l1-3 3-1 2-3-2-2V7l-3-1-1-3H9Z"/><circle cx="11.5" cy="11" r="3"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14a8.5 8.5 0 0 1-10-10A8.5 8.5 0 1 0 20 14Z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m10 5-7 7 7 7M3 12h18"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 8a8 8 0 1 0 0 8M20 3v5h-5"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-reply" viewBox="0 0 24 24"><path d="m9 5-6 6 6 6M3 11h9c6 0 8 3 8 8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+</defs></svg>
+<div class="app-shell">
+  <header class="titlebar">
+    <div class="brand"><span class="rune" aria-hidden="true">A</span><div><strong>AZEROTH <span>RELAY</span></strong><small>Deine Welt. Deine Nachrichten.</small></div></div>
+    <div class="window-actions">
+      <span id="connection" class="status-pill"><i></i> Nicht verbunden</span>
+      <button id="quiet-button" class="icon-button" title="Ruhemodus" aria-label="Ruhemodus" aria-pressed="false"><svg><use href="#i-moon"/></svg></button>
+      <button id="settings-button" class="icon-button" title="Einstellungen" aria-label="Einstellungen"><svg><use href="#i-settings"/></svg></button>
+      <span class="title-divider"></span>
+      <button id="hide-button" class="icon-button" title="Ausblenden · App bleibt aktiv" aria-label="Overlay ausblenden"><svg><use href="#i-close"/></svg></button>
+    </div>
+  </header>
+
+  <main id="chat-view" class="workspace" hidden>
+    <aside class="sidebar">
+      <div class="sidebar-heading"><h1>Nachrichten <span id="total-unread">0</span></h1><button id="refresh-button" class="icon-button small" aria-label="Chats aktualisieren" title="Chats aktualisieren"><svg><use href="#i-refresh"/></svg></button></div>
+      <label class="search-box"><svg><use href="#i-search"/></svg><input id="search" type="search" placeholder="Chat suchen …" aria-label="Chat suchen" autocomplete="off"></label>
+      <div class="chat-filters" role="group" aria-label="Chatfilter"><button id="filter-all" class="selected">Alle Chats</button><button id="filter-favorites">Favoriten</button></div>
+      <div id="chat-list" class="chat-list" aria-label="Unterhaltungen"></div>
+      <button id="more-chats" class="text-button load-chats" hidden>Weitere Chats laden</button>
+      <div class="sidebar-bottom"><span class="avatar self" id="user-avatar">AR</span><div class="account-name"><strong id="user-name">Dein Konto</strong><small id="account-caption">Telegram verbunden</small></div><span class="online-dot"></span></div>
+    </aside>
+    <section class="conversation" aria-label="Gespräch">
+      <div id="empty-conversation" class="empty-conversation"><span class="large-rune">✧</span><h2>Ein kurzer Draht nach draußen.</h2><p>Wähle einen Chat und bleib in Verbindung.</p></div>
+      <div id="active-conversation" class="conversation-inner" hidden>
+        <header class="conversation-heading"><button id="back-chats" class="icon-button mobile-back" aria-label="Zur Chatliste"><svg><use href="#i-arrow"/></svg></button><span id="chat-avatar" class="avatar rose">MA</span><div class="conversation-title"><h2 id="chat-title"></h2><p id="chat-subtitle">Persönlicher Chat · Telegram</p></div><button id="favorite-button" class="icon-button" aria-label="Als Favorit markieren" title="Favorit"><svg><use href="#i-star"/></svg></button><button id="compact-button" class="icon-button" aria-label="Kompaktansicht umschalten" title="Kompaktansicht"><svg><use href="#i-expand"/></svg></button></header>
+        <div class="demo-banner" id="demo-banner"><span class="tiny-spark">✧</span> Demomodus · Nachrichten bleiben auf diesem Gerät.<button id="connect-from-demo">Konto verbinden <span>↗</span></button></div>
+        <div id="connection-warning" class="inline-error" role="status" hidden>Verbindung zu Telegram unterbrochen. Dein Entwurf bleibt erhalten.</div>
+        <div id="message-list" class="message-list" role="log" aria-label="Nachrichten"><button id="older-messages" class="text-button" hidden>Ältere Nachrichten laden</button><div id="messages"></div></div>
+        <div id="conversation-error" class="inline-error" role="alert" hidden></div>
+        <div class="composer-area">
+          <div id="reply-preview" class="reply-preview" hidden><svg><use href="#i-reply"/></svg><div><strong>Antwort auf Nachricht</strong><span id="reply-text"></span></div><button id="cancel-reply" class="icon-button small" aria-label="Antwort abbrechen"><svg><use href="#i-close"/></svg></button></div>
+          <form id="message-form" class="composer"><textarea id="message-input" rows="1" placeholder="Schreib eine Nachricht …" aria-label="Nachricht" maxlength="8192"></textarea><button type="submit" id="send-button" class="send-button" title="Nachricht senden" aria-label="Nachricht senden"><svg><use href="#i-send"/></svg></button></form>
+          <div class="composer-hint"><span id="send-status">Enter zum Senden · Shift + Enter für neue Zeile</span><span class="secure-hint"><svg><use href="#i-shield"/></svg> Direkt über Telegram</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <main id="login-view" class="login-view">
+    <div class="login-intro"><span class="eyebrow">FÜR DEINE ZEIT IN AZEROTH</span><h1>Im Spiel bleiben.<br><span>In Verbindung bleiben.</span></h1><p>Deine Telegram-Chats, einen Hotkey entfernt.<br>Für Retail und Forever. Auf Windows und Mac.</p><div class="feature-chips"><span>✧ Frei platzierbar</span><span>⌘ Ein Hotkey</span><span>◇ Lokal geschützt</span></div></div>
+    <section class="login-card" aria-label="Telegram-Anmeldung">
+      <div id="login-config"><div class="card-kicker">DEIN PERSÖNLICHES KONTO</div><h2>Mit Telegram verbinden</h2><p class="muted">Für die direkte Verbindung brauchst du einmalig die Zugangsdaten deiner Telegram-App.</p>
+        <form id="login-form"><div class="credentials-row"><label>API-ID<input id="api-id" inputmode="numeric" placeholder="z. B. 12345678" required autocomplete="off"></label><label>API-Hash<input id="api-hash" type="password" placeholder="32 Zeichen" required autocomplete="off" maxlength="32"></label></div>
+          <button type="button" id="get-api" class="text-button api-link">App-Daten bei my.telegram.org erstellen ↗</button>
+          <div class="auth-tabs" role="group" aria-label="Anmeldemethode"><button id="method-qr" type="button" class="selected">QR-Code</button><button id="method-phone" type="button">Telefonnummer</button></div>
+          <label id="phone-field" hidden>Telefonnummer<input id="phone-number" type="tel" placeholder="+49 …" autocomplete="off"></label>
+          <button type="submit" class="primary-button full" id="login-submit">QR-Code anzeigen <span>→</span></button>
+        </form>
+        <div class="login-divider"><span>oder erst ansehen</span></div><button id="start-demo" class="secondary-button full">Mit Demo-Chats ausprobieren <svg><use href="#i-spark"/></svg></button>
+      </div>
+      <div id="login-challenge" hidden><div class="card-kicker">SICHERE ANMELDUNG</div><h2 id="challenge-title">Verbindung wird aufgebaut …</h2><p id="challenge-description" class="muted"></p><img id="qr-image" width="220" height="220" alt="Telegram-Anmeldecode" hidden><div id="auth-spinner" class="spinner" aria-label="Bitte warten"></div><form id="challenge-form" hidden><label id="challenge-label">Bestätigungscode<input id="challenge-input" autocomplete="off" required></label><button class="primary-button full" type="submit">Bestätigen →</button></form><button id="cancel-login" class="text-button">Zurück zur Anmeldung</button></div>
+      <div id="login-error" class="inline-error" role="alert" hidden></div>
+      <p class="privacy-note"><svg><use href="#i-shield"/></svg> Anmeldung lokal verschlüsselt. Kein Relay-Server.</p>
+    </section>
+    <p class="unofficial">Ein unabhängiger Client mit Telegram-API. Kein offizielles Produkt von Telegram oder Blizzard.</p>
+  </main>
+
+  <footer class="statusbar"><div class="profile-control"><span class="profile-gem">◆</span><label class="sr-only" for="profile">Spielprofil</label><select id="profile"><option value="retail">WoW Retail</option><option value="forever">WoW Forever</option></select><span id="game-status" class="game-status">Manuelles Profil</span></div><div class="statusbar-right"><button id="passive-button" class="text-button" title="Klicks durchlassen; mit Hotkey wieder aktivieren"><svg><use href="#i-eye"/></svg> Nur ansehen</button><span class="hotkey-label" id="hotkey-label">⌘ ⇧ Space</span><span>Chat öffnen</span></div></footer>
+  <div id="passive-cover" class="passive-label" hidden>Nur ansehen · Mit dem Hotkey wieder schreiben</div>
+
+  <dialog id="settings-dialog" class="settings-dialog"><div class="settings-header"><div><span class="eyebrow">DEIN OVERLAY</span><h2>Einstellungen</h2></div><button id="close-settings" class="icon-button" aria-label="Einstellungen schließen"><svg><use href="#i-close"/></svg></button></div><div class="settings-content">
+    <section class="settings-section"><h3>Darstellung <span id="settings-profile">Retail</span></h3><label class="setting-row"><span>Deckkraft<small>Gilt für das aktuelle Spielprofil.</small></span><span class="range-control"><input id="opacity" type="range" min="50" max="100" step="1"><output id="opacity-value">96 %</output></span></label><label class="setting-row"><span>Kompakte Ansicht<small>Chatliste einklappen.</small></span><input id="compact-setting" class="switch" type="checkbox"></label><label class="setting-row"><span>Bildschirm<small>Position pro Spielprofil gespeichert.</small></span><select id="monitor-setting"></select></label></section>
+    <section class="settings-section"><h3>Bedienung</h3><form id="hotkey-form"><label class="setting-row"><span>Overlay öffnen / schließen</span><input id="hotkey-setting" class="shortcut-input" aria-label="Overlay-Tastenkürzel" placeholder="CommandOrControl+Shift+Space" required></label><label class="setting-row"><span>Ruhemodus umschalten</span><input id="quiet-hotkey-setting" class="shortcut-input" aria-label="Ruhemodus-Tastenkürzel" required></label><p class="setting-help">CommandOrControl = ⌘ am Mac / Strg unter Windows. Beispiel: Alt+Shift+T</p><button class="secondary-button" type="submit">Tastenkürzel übernehmen</button></form><label class="setting-row"><span>Außerhalb von WoW ausblenden<small>Beim Wechsel zu anderen Apps ausblenden. Öffnen per Hotkey.</small></span><input id="auto-hide-setting" class="switch" type="checkbox"></label><label class="setting-row"><span>Mit dem Rechner starten<small id="autostart-help">In der installierten App verfügbar.</small></span><input id="autostart-setting" class="switch" type="checkbox"></label></section>
+    <section class="settings-section"><h3>Benachrichtigungen</h3><label class="setting-row"><span>Nachrichtenhinweise<small>Kurzer Hinweis ohne Fokuswechsel.</small></span><input id="notifications-setting" class="switch" type="checkbox"></label><label class="setting-row"><span>Namen und Textvorschau anzeigen<small>Standardmäßig bleibt der Inhalt verborgen.</small></span><input id="previews-setting" class="switch" type="checkbox"></label><label class="setting-row"><span>Nur Favoriten benachrichtigen</span><input id="favorites-setting" class="switch" type="checkbox"></label><label class="setting-row"><span>Ruhemodus<small>Keine Hinweise, Nachrichten kommen weiter an.</small></span><input id="quiet-setting" class="switch" type="checkbox"></label></section>
+    <section class="settings-section"><h3>Konto und Daten</h3><p class="setting-help">Die Telegram-Sitzung ist lokal mit dem Betriebssystem geschützt. Nachrichten und Entwürfe werden nur im Arbeitsspeicher gehalten. Die Chatauswahl beschränkt die Anzeige, nicht die Rechte der Telegram-Sitzung.</p><div id="demo-tools"><button id="simulate-message" class="secondary-button">Demo-Nachricht empfangen</button><button id="leave-demo" class="text-button">Demo verlassen</button></div><div id="account-tools" hidden><button id="logout-button" class="secondary-button">Bei Telegram abmelden</button></div><button id="reset-local" class="text-button danger">Lokale Anmeldung löschen …</button></section>
+    <section class="settings-section about-section"><span class="rune small-rune">A</span><div><strong>Azeroth Relay <span id="version">0.1.0</span></strong><p>Retail & Forever · Windows & macOS</p><small>Beim Schreiben erhält das Overlay den Tastaturfokus. Für Vollbild zunächst den randlosen Fenstermodus verwenden.</small></div></section><button id="quit-button" class="text-button danger">App vollständig beenden</button>
+  </div><div id="settings-error" class="inline-error" role="alert" hidden></div></dialog>
+  <dialog id="confirm-dialog" class="confirm-dialog"><h2 id="confirm-title"></h2><p id="confirm-description"></p><div><button id="confirm-cancel" class="secondary-button">Abbrechen</button><button id="confirm-accept" class="primary-button">Bestätigen</button></div></dialog>
+  <div id="notice" class="notice" role="status" hidden></div>
+</div>
+</body>
+</html>
