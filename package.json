@@ -13,9 +13,9 @@
     "test": "node --test tests/*.test.cjs",
     "test:ui": "node tests/ui.cjs",
     "check": "node scripts/check.cjs",
-    "pack": "electron-builder --dir",
-    "build:mac": "electron-builder --mac dmg zip --arm64 --x64",
-    "build:win": "electron-builder --win nsis --x64"
+    "pack": "electron-builder --dir --publish never",
+    "build:mac": "electron-builder --mac dmg zip --arm64 --x64 --publish never",
+    "build:win": "electron-builder --win nsis --x64 --publish never"
   },
   "dependencies": {
     "qrcode": "1.5.4",

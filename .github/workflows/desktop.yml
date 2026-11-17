@@ -42,9 +42,9 @@ jobs:
           retention-days: 7
           path: |
             test-results/
-            release/**/*.dmg
-            release/**/*.zip
-            release/**/*.exe
+            release/*/*.dmg
+            release/*/*.zip
+            release/*/*.exe
 
   release:
     needs: desktop
